@@ -1,0 +1,60 @@
+---
+title: "Day 21"
+output: html_document
+date: "2024-11-21"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r warning=FALSE}
+library(sf)
+library(ggplot2)
+library(RColorBrewer)
+library(ggtext)
+```
+
+```{r include=FALSE}
+homeless_data <- st_read("C:/Users/raymo/Documents/Fall 2024/MUSA6310 Communication/30 Days Mapping Challenge/Day 21 Conflict/Persons_Experiencing_Homelessness.shp")
+
+homeless_data_filtered <- homeless_data[!(homeless_data$Geo_Name %in% c("City of Avalon", "Unincorporated - Santa Catalina Island", "Unincorporated - San Clemente Island")), ]
+
+homeless_data_filtered$Homeless <- factor(homeless_data_filtered$Homeless)
+```
+
+```{r}
+homeless_data_filtered$Homeless <- as.numeric(homeless_data_filtered$Homeless)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = homeless_data_filtered, aes(fill = Homeless), color = NA) +
+  scale_fill_gradientn(
+    colors = brewer.pal(9, "Reds"), 
+    na.value = "gray95",
+    name = "Homeless Population"
+  ) +
+  theme_minimal() +
+  labs(
+    title = "<b><span style='color:#ff2200;'>Homelessness</span></b> in Los Angeles 2022",
+    subtitle = "Aggregated Persons Experiencing Homelessness",
+    caption = "30 Day Map Challenge 2024 | Day 21 - Conflict\nAuthor: Ray Ma\nSource: Los Angeles Homeless Services Authority"
+  ) +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    panel.border = element_blank(),
+    legend.position = "bottom",
+    plot.title = element_markdown(size = 14, face = "bold", hjust = 0),
+    plot.caption = element_text(hjust = 1, size = 10),
+  )+
+  guides(
+    fill = guide_colorbar(
+      title = NULL,
+      barwidth = 12,
+      barheight = 0.5
+    )
+  )
+```
