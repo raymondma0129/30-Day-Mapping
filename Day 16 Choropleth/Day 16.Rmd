@@ -1,0 +1,65 @@
+---
+title: "Day 16"
+output: html_document
+date: "2024-11-16"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+library(sf)
+library(ggplot2)
+library(usmap)
+library(dplyr)
+library(ggtext)
+```
+
+```{r}
+aqi_2020 <- read.csv("C:/Users/raymo/Documents/Fall 2024/MUSA6310 Communication/30 Days Mapping Challenge/Day 16 Choropleth/daily_aqi_by_county_2020.csv")
+```
+
+```{r}
+aqi_state_avg <- aqi_2020 %>%
+  group_by(State.Name) %>%
+  summarize(Average_AQI = mean(AQI, na.rm = TRUE))
+```
+
+```{r}
+us_states <- us_map("states")
+
+us_states_sf <- st_as_sf(us_states)
+
+us_states_sf <- st_transform(us_states_sf, crs = 4326)
+
+us_states_data <- us_states %>%
+  left_join(aqi_state_avg, by = c("full" = "State.Name"))
+```
+
+```{r}
+ggplot(us_states_data) +
+  geom_sf(aes(fill = Average_AQI), color = "white", size = 0.1) +
+  scale_fill_gradient(low = "white", high = "red", name = "AQI", na.value = "gray95") +
+  theme_void() +
+  labs(
+    title = "<span style='color:#FF2200;'>Air Quality Index</span> in the US 2020", 
+    subtitle = "Median Air Quality Index by State",
+    caption = "30 Day Map Challenge 2024 | Day 16 - Choropleth\nAuthor: Ray Ma\nSource: Daily AQI in USA counties 2015-2020"
+  ) +
+  theme(
+    legend.position = "bottom",
+    plot.title = ggtext::element_markdown(size = 14, face = "bold", hjust = 0),
+    panel.grid = element_blank(),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    plot.caption = element_text(hjust = 1, size = 10)
+  ) +
+  guides(
+    fill = guide_colorbar(
+      title = NULL,
+      barwidth = 15,
+      barheight = 0.5
+    )
+  )
+```
