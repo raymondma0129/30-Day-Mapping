@@ -1,0 +1,77 @@
+---
+title: "Day 11"
+output: html_document
+date: "2024-11-11"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+library(sf)
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+shp_path <- "C:/Users/raymo/Documents/Fall 2024/MUSA6310 Communication/30 Days Mapping Challenge/Day 11 Arctic/Exclusive_Economic_Zones_(EEZs).shp"
+```
+
+```{r, include=FALSE}
+eez_zones <- st_read(shp_path)
+
+eez_zones_arctic <- st_transform(eez_zones, crs = 3995)
+```
+
+```{r}
+eez_top5 <- eez_zones_arctic %>%
+  mutate(Area_km2 = st_area(.) / 1e6) %>% # Calculate area in square kilometers
+  group_by(Sovereign) %>%
+  summarise(Total_Area_km2 = sum(Area_km2)) %>%
+  arrange(desc(Total_Area_km2)) %>%
+  slice_head(n = 5)
+
+arctic_zones <- eez_zones_arctic %>%
+  mutate(Sovereign_Group = ifelse(Sovereign %in% eez_top5$Sovereign, Sovereign, "Other"))
+```
+
+```{r}
+colors <- c(
+  "Canada" = "#F46D43",     # Coral
+  "Norway" = "#74ADD1",     # Sky blue
+  "Russia" = "#FFD700",     # Gold
+  "Denmark" = "#C77CFF",    # Lavender
+  "United States" = "#66C2A5" # Teal
+)
+
+
+other_color <- "gray90"
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = arctic_zones, aes(fill = Sovereign_Group), color = "white") +
+  scale_fill_manual(
+    values = c(
+      colors,
+      "Other" = other_color
+    )
+  ) +
+  theme_minimal() +
+  labs(
+    title = "Arctic Exclusive Economic Zones",
+    caption = "30 Day Map Challenge 2024 | Day 11 - Arctic\nAuthor: Ray Ma\nSource:National Geospatial-Intelligence Agency",) +
+  theme(
+    legend.position = "right",
+    legend.title = element_blank(),
+    legend.box = "vertical",
+    legend.direction = "vertical",
+    legend.box.spacing = unit(0.5, "cm"),
+    plot.title = element_text(size = 14, face = "bold"),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    plot.caption = element_text(hjust = 1, size = 10),
+  ) 
+```
