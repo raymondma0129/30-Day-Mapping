@@ -1,0 +1,89 @@
+---
+title: "Day 28"
+output: html_document
+date: "2024-11-28"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+library(sf)
+library(ggplot2)
+library(viridis)
+library(dplyr)
+library(RColorBrewer)
+library(ggtext)
+```
+
+```{r, include=FALSE}
+drought_risk<- st_read("C:/Users/raymo/Documents/Fall 2024/MUSA6310 Communication/30 Days Mapping Challenge/Day 28 The Blue Planet/Drought_Risk.shp")
+
+la_boundary <- st_read("C:/Users/raymo/Documents/Fall 2024/MUSA6310 Communication/30 Days Mapping Challenge/Day 28 The Blue Planet/LA_County_Boundary.shp")
+
+drought_risk$drought_water_combined <- paste(drought_risk$cva_drough, drought_risk$water_qual, sep = ".")
+
+drought_risk$drought_water_combined <- factor(drought_risk$drought_water_combined,
+                                              levels = c("High.Low", "High.Medium", "High.High", 
+                                                         "Medium.Low", "Medium.Medium", "Medium.High", 
+                                                         "Low.Low", "Low.Medium", "Low.High",
+                                                         "High.None", "Medium.None", "Low.None", 
+                                                         "None"))
+```
+
+```{r}
+custom_colors <- c(
+  "gray95", 
+  "#FFDDDD",
+  "#FFAAAA",
+  "#FF7F7F",
+  "#FF5555",
+  "#FF3300",
+  "#FF2200",
+  "#D90000",
+  "#B30000",
+  "#9B0000", 
+  "#800000",
+  "#660000",
+  "#4D0000" 
+)
+
+custom_colors_inverted <- rev(custom_colors)
+```
+
+```{r}
+ggplot(data = drought_risk) +
+  geom_sf(data = la_boundary, fill = "gray95", color = "NA", size = 1) +
+  geom_sf(aes(fill = drought_water_combined), color = "NA") + 
+  scale_fill_manual(values = custom_colors_inverted, na.value = "gray95", name = "Drought & Water Quality", 
+                    guide = guide_legend(override.aes = list(fill = custom_colors_inverted))) +
+  
+  theme_minimal() +
+  labs(
+    title = "<b><span style='color:#660000;'>Drought</span></b> and <b><span style='color:#FF2200;'>Water Quality</span></b> in Los Angeles",
+    subtitle = "CVA Drought Risk and Water Quality by Water Service Area",
+    caption = "30 Day Map Challenge 2024 | Day 28 - The Blue Planet\nAuthor: Ray Ma\nSource: CA State Water Resources Control Board"
+  ) +
+  theme(
+    legend.position = "right",
+    legend.key.size = unit(0.5, "cm"),
+    legend.text = element_text(size = 8), 
+    legend.title = element_text(size = 10),
+    panel.grid = element_blank(),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    plot.title = ggtext::element_markdown(size = 14, face = "bold",hjust = 0),
+    plot.caption = element_text(hjust = 0, size = 10),
+  ) +
+  guides(
+    fill = guide_legend(
+      title = "Drought Level.Water Quality", 
+      title.position = "top", 
+      override.aes = list(fill = custom_colors_inverted),
+      keywidth = 1, 
+      keyheight = 0.75
+    )
+  ) +
+  coord_sf(xlim = st_bbox(drought_risk)[c(1, 3)], ylim = st_bbox(drought_risk)[c(2, 4)], expand = FALSE)
+```
