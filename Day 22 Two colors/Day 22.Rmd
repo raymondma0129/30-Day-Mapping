@@ -1,0 +1,57 @@
+---
+title: "Day 22"
+output: html_document
+date: "2024-11-22"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(sf)
+library(ggplot2)
+library(ggtext)
+```
+
+```{r, include=FALSE}
+recreational_spaces <- st_read("C:/Users/raymo/Documents/Fall 2024/MUSA6310 Communication/30 Days Mapping Challenge/Day 22 Two colors/Recreational_spaces.shp")
+
+la_boundary <- st_read("C:/Users/raymo/Documents/Fall 2024/MUSA6310 Communication/30 Days Mapping Challenge/Day 22 Two colors/LA_County_Boundary.shp")
+
+```
+
+```{r}
+recreational_spaces <- st_transform(recreational_spaces, crs = 4326)
+la_boundary <- st_transform(la_boundary, crs = 4326)
+
+la_bbox <- st_bbox(la_boundary)
+
+xlim_vals <- c(-118.8, -118.1)  # Longitude bounds for LA (adjust as needed)
+ylim_vals <- c(33.6, 34.5)
+
+xrange <- diff(xlim_vals)
+yrange <- diff(ylim_vals)
+
+xlim_zoomed <- c(xlim_vals[1] - 0.5 * xrange, xlim_vals[2] + 0.5 * xrange)
+ylim_zoomed <- c(ylim_vals[1] - 0.5 * yrange, ylim_vals[2] + 0.5 * yrange)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = la_boundary, fill = "#C77CFF", color = "NA") +
+  geom_sf(data = recreational_spaces, fill = "#FFD700", color = "NA") +
+  coord_sf(xlim = xlim_zoomed, ylim = ylim_zoomed, expand = FALSE) +
+  theme_minimal() +
+  labs(
+    title = "<span style='color:#FFD700;'>Recreational Spaces</span> in <span style='color:#C77CFF;'>Los Angeles</span>",
+    caption = "30 Day Map Challenge 2024 | Day 22 - Two Colors\nAuthor: Ray Ma\nSource: Los Angeles County Department of Public Health"
+  ) +
+  theme(
+    plot.title = ggtext::element_markdown(size = 14, face = "bold", hjust = 0),
+    panel.grid = element_blank(),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    plot.caption = element_text(hjust = 0, size = 10)
+  )
+```
