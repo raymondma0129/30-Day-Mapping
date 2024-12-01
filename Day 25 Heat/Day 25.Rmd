@@ -1,0 +1,70 @@
+---
+title: "Day 25"
+output: html_document
+date: "2024-11-25"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+library(sf)
+library(dplyr)
+library(ggplot2)
+library(tigris)
+library(ggtext)
+```
+
+```{r, warning=FALSE, include=FALSE}
+fire_facilities <- st_read("C:/Users/raymo/Documents/Fall 2024/MUSA6310 Communication/30 Days Mapping Challenge/Day 25 Heat/Facilities_for_Wildland_Fire_Protection.shp")
+```
+
+```{r}
+fire_facilities <- st_transform(fire_facilities, crs = 4326)
+```
+
+```{r}
+california_shape <- states(cb = TRUE) %>%
+  filter(STUSPS == "CA") %>%
+  st_transform(crs = 4326)
+
+california_shape <- st_transform(california_shape, crs = st_crs(fire_facilities))
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = california_shape, fill = "darkred", color = NA) +
+  stat_density_2d(
+    data = fire_facilities,
+    aes(x = st_coordinates(fire_facilities)[,1], 
+        y = st_coordinates(fire_facilities)[,2], 
+        fill = ..level..),
+    geom = "polygon", 
+    alpha = 0.5
+  ) +
+  scale_fill_gradient(low = "#ff2200", high = "#ffcccc") +
+  labs(
+    title = "<span style='color:#ff2200;'> Fire Vulnerbility </span> in California 2021",
+    subtitle = "Density of Wildland Fire Protection Facilities",
+    caption = "30 Day Map Challenge 2024 | Day 25 - Heat\nAuthor: Ray Ma\nSource: CALFIRE",
+    fill = "Density"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title = element_blank(),
+    legend.position = "bottom",
+    plot.title = ggtext::element_markdown(size = 14, face = "bold",hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.73),
+    plot.caption = element_text(hjust = 1, size = 10),
+  ) +
+  guides(
+    fill = guide_colorbar(
+      title = NULL,
+      barwidth = 12,
+      barheight = 0.5
+    ))
+```
