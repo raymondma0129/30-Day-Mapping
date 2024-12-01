@@ -1,0 +1,55 @@
+---
+title: "Day 1"
+output: html_document
+date: "2024-11-01"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning=FALSE}
+library(sf)
+library(ggplot2)
+library(dplyr)
+```
+
+```{r, warning=FALSE}
+setwd("C:/Users/raymo/Documents/Fall 2024/MUSA6310 Communication/30 Days Mapping Challenge/Day 1 Point")
+```
+
+```{r}
+parks <- read.csv("C:/Users/raymo/Documents/Fall 2024/MUSA6310 Communication/30 Days Mapping Challenge/Day 1 Point/data/parks.csv")
+```
+
+```{r}
+parks_filtered <- parks %>%
+  filter(State != "AK" & State != "HI")
+
+parks_sf <- st_as_sf(parks_filtered, coords = c("Longitude", "Latitude"), crs = 4326)
+
+us_map <- st_as_sf(maps::map("state", plot = FALSE, fill = TRUE))
+
+us_map <- st_transform(us_map, crs = st_crs("+proj=aea +lat_1=29.5 +lat_2=45.5 +lon_0=-96"))
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = us_map, fill = "gray90", color = "white") + 
+  geom_sf(data = parks_sf, aes(color = State, size = Acres), show.legend = FALSE) + 
+  labs(
+    title = "National Parks in CONUS by Size",
+    caption = "30 Day Map Challenge 2024 | Day 1 - Point \nAuthor: Ray Ma \nSource: National Park Service"
+  ) +
+  theme_minimal() +
+  scale_size_continuous(name = "Acres", range = c(2, 10)) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold", margin = margin(b = 10)),
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = margin(t = 20, r = 10, b = 10, l = 10),
+    plot.caption = element_text(hjust = 0, size = 10)
+  )
+```
